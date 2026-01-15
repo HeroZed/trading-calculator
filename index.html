@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>費氏戰略全能計算機</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background-color: #f8f9fa; display: flex; justify-content: center; padding: 15px; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+        .mode-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-up { background-color: #ff4d4f; color: white; }
+        .btn-down { background-color: #52c41a; color: white; }
+        .btn-inactive { opacity: 0.15; filter: grayscale(1); }
+        .input-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .input-group { flex: 1; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #666; }
+        input { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .box { padding: 12px; border-radius: 8px; background: #fcfcfc; border: 1px solid #f0f0f0; }
+        .box-title { font-size: 12px; color: #999; margin-bottom: 5px; }
+        .box-value { font-size: 18px; font-weight: bold; font-family: monospace; }
+        .advice-box { margin-top: 15px; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6; }
+        .up-advice { background: #fff1f0; border-left: 4px solid #ff4d4f; color: #a8071a; }
+        .down-advice { background: #f6ffed; border-left: 4px solid #52c41a; color: #237804; }
+        .section-h { font-size: 14px; font-weight: bold; margin: 15px 0 8px; color: #333; display: flex; align-items: center; }
+        .section-h::after { content: ""; flex: 1; height: 1px; background: #eee; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="mode-selector">
+        <button id="upBtn" class="btn-up" onclick="setMode('上N')">多頭戰略 (上N)</button>
+        <button id="downBtn" class="btn-down btn-inactive" onclick="setMode('下N')">空頭戰略 (下N)</button>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label>前波高點 (H)</label>
+            <input type="number" id="h" placeholder="31253" oninput="run()">
+        </div>
+        <div class="input-group">
+            <label>前波低點 (L)</label>
+            <input type="number" id="l" placeholder="30007" oninput="run()">
+        </div>
+    </div>
+
+    <div class="section-h">佈局區 (找支撐/壓力)</div>
+    <div class="grid">
+        <div class="box"><div class="box-title">強勢位 0.382</div><div id="v382" class="box-value">-</div></div>
+        <div class="box"><div class="box-title">中軸位 0.500</div><div id="v500" class="box-value">-</div></div>
+        <div class="box"><div class="box-title">黃金位 0.618</div><div id="v618" class="box-value">-</div></div>
+        <div class="box" style="background: #fffbe6;"><div class="box-title">關鍵守護位</div><div id="vGuard" class="box-value">-</div></div>
+    </div>
+
+    <div class="section-h">擴展區 (波段目標)</div>
+    <div class="grid">
+        <div class="box"><div class="box-title">目標一 1.382</div><div id="v1382" class="box-value">-</div></div>
+        <div class="box"><div class="box-title">目標二 1.618</div><div id="v1618" class="box-value">-</div></div>
+        <div class="box"><div class="box-title">目標三 2.000</div><div id="v2000" class="box-value">-</div></div>
+        <div class="box"><div class="box-title">極限位 2.618</div><div id="v2618" class="box-value">-</div></div>
+    </div>
+
+    <div id="adviceArea" class="advice-box up-advice">
+        <strong>操作指引：</strong><br>
+        <span id="adviceTxt">請先輸入高低點點位...</span>
+    </div>
+</div>
+
+<script>
+    let mode = '上N';
+    function setMode(m) {
+        mode = m;
+        document.getElementById('upBtn').className = (m === '上N' ? 'btn-up' : 'btn-up btn-inactive');
+        document.getElementById('downBtn').className = (m === '下N' ? 'btn-down' : 'btn-down btn-inactive');
+        document.getElementById('adviceArea').className = (m === '上N' ? 'advice-box up-advice' : 'advice-box down-advice');
+        run();
+    }
+
+    function run() {
+        const h = parseFloat(document.getElementById('h').value);
+        const l = parseFloat(document.getElementById('l').value);
+        if (isNaN(h) || isNaN(l)) return;
+        const diff = Math.abs(h - l);
+        
+        let v382, v500, v618, v1382, v1618, v2000, v2618, vGuard;
+
+        if (mode === '上N') {
+            v382 = h - (diff * 0.382);
+            v500 = h - (diff * 0.5);
+            v618 = h - (diff * 0.618);
+            vGuard = (v382 + h) / 2; // 強勢保護位
+            v1382 = l + (diff * 1.382);
+            v1618 = l + (diff * 1.618);
+            v2000 = l + (diff * 2.0);
+            v2618 = l + (diff * 2.618);
+            document.getElementById('adviceTxt').innerHTML = `● <b>第一口：</b>回檔至 ${v382.toFixed(0)} 附近進場。<br>● <b>加碼：</b>站穩前高 ${h} 後進場第二口。<br>● <b>撤退：</b>若跌破關鍵守護位 ${vGuard.toFixed(0)} 建議先平倉一半獲利。`;
+        } else {
+            v382 = l + (diff * 0.382);
+            v500 = l + (diff * 0.5);
+            v618 = l + (diff * 0.618);
+            vGuard = (v382 + l) / 2;
+            v1382 = h - (diff * 1.382);
+            v1618 = h - (diff * 1.618);
+            v2000 = h - (diff * 2.0);
+            v2618 = h - (diff * 2.618);
+            document.getElementById('adviceTxt').innerHTML = `● <b>第一口：</b>反彈至 ${v382.toFixed(0)} 附近放空。<br>● <b>加碼：</b>跌破前低 ${l} 後加碼第二口。<br>● <b>撤退：</b>若反彈突破關鍵守護位 ${vGuard.toFixed(0)} 建議空單補回一半。`;
+        }
+
+        document.getElementById('v382').innerText = v382.toFixed(0);
+        document.getElementById('v500').innerText = v500.toFixed(0);
+        document.getElementById('v618').innerText = v618.toFixed(0);
+        document.getElementById('vGuard').innerText = vGuard.toFixed(0);
+        document.getElementById('v1382').innerText = v1382.toFixed(0);
+        document.getElementById('v1618').innerText = v1618.toFixed(0);
+        document.getElementById('v2000').innerText = v2000.toFixed(0);
+        document.getElementById('v2618').innerText = v2618.toFixed(0);
+    }
+</script>
+</body>
+</html>
